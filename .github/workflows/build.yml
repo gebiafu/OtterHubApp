@@ -35,14 +35,28 @@ jobs:
         run: chmod +x gradlew
 
       # ---- Release 签名（配置了 Secrets 时才用正式 keystore，否则自动回退 debug 签名）----
+      # 注意：GitHub Actions 的 if 条件里不能直接用 secrets context，
+      # 所以先把 secret 映射到 env，再用 env 做判断。
+      - name: Check release keystore secret
+        id: check_keystore
+        env:
+          HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$HAS_KEYSTORE" ]; then
+            echo "has_keystore=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_keystore=false" >> "$GITHUB_OUTPUT"
+            echo "未配置 ANDROID_KEYSTORE_BASE64，将使用 Debug 签名"
+          fi
+
       - name: Decode release keystore
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: steps.check_keystore.outputs.has_keystore == 'true'
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
 
       - name: Validate release signing secrets
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: steps.check_keystore.outputs.has_keystore == 'true'
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
