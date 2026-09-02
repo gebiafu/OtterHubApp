@@ -1,0 +1,25 @@
+# Gradle 构建产物
+.gradle/
+build/
+app/build/
+
+# 本地配置（含 SDK 路径），不要提交
+local.properties
+
+# 签名密钥与本地签名配置，不要提交
+keystore.properties
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+captures/
+
+# 原生构建
+.externalNativeBuild/
+.cxx/
+
+# 系统/工具
+.DS_Store
+*.log

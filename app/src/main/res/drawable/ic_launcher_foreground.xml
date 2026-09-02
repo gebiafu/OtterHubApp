@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自适应图标前景：水獭简笔头像（白色头部 + 深青五官），108dp 画布内位于安全区 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 左耳 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M35,40 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
+    <!-- 右耳 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M61,40 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 z" />
+    <!-- 头部 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M37,56 a17,17 0 1,0 34,0 a17,17 0 1,0 -34,0 z" />
+    <!-- 左眼 -->
+    <path
+        android:fillColor="#006874"
+        android:pathData="M45.2,53 a2.3,2.3 0 1,0 4.6,0 a2.3,2.3 0 1,0 -4.6,0 z" />
+    <!-- 右眼 -->
+    <path
+        android:fillColor="#006874"
+        android:pathData="M58.2,53 a2.3,2.3 0 1,0 4.6,0 a2.3,2.3 0 1,0 -4.6,0 z" />
+    <!-- 鼻头 -->
+    <path
+        android:fillColor="#006874"
+        android:pathData="M51,62 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 z" />
+</vector>

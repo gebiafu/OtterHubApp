@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,16 +8,41 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+// 签名配置来源（按优先级）：环境变量（CI Secrets） > keystore.properties（本地，不入库）
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) {
+        FileInputStream(file).use { load(it) }
+    }
+}
+
+fun signingValue(envName: String, propName: String): String? =
+    System.getenv(envName)?.takeIf { it.isNotBlank() }
+        ?: keystoreProperties.getProperty(propName)?.takeIf { it.isNotBlank() }
+
 android {
     namespace = "com.example.otterhub"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.otterhub"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            val storePath = signingValue("KEYSTORE_PATH", "storeFile")
+            val store = storePath?.let { File(it) }?.takeIf { it.exists() }
+            if (store != null) {
+                storeFile = store
+                storePassword = signingValue("KEYSTORE_PASSWORD", "storePassword")
+                keyAlias = signingValue("KEY_ALIAS", "keyAlias")
+                keyPassword = signingValue("KEY_PASSWORD", "keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -25,6 +53,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 正式 keystore 就绪时用 release 签名；否则回退 debug 签名，
+            // 保证本地/CI 产物始终是可安装的 app-release.apk
+            signingConfig = signingConfigs.getByName("release").takeIf { it.storeFile != null }
+                ?: signingConfigs.getByName("debug")
         }
     }
 
