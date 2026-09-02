@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>otterhub</artifactId>
+    <version>1.0.0</version>
+    <packaging>apk</packaging>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.version>2.1.0</kotlin.version>
+        <compose.bom.version>2024.12.01</compose.bom.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>google</id>
+            <url>https://maven.google.com/</url>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- Kotlin -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <!-- Jetpack Compose BOM -->
+        <dependency>
+            <groupId>androidx.compose</groupId>
+            <artifactId>compose-bom</artifactId>
+            <version>${compose.bom.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <!-- Material 3 -->
+        <dependency>
+            <groupId>androidx.compose.material3</groupId>
+            <artifactId>material3</artifactId>
+        </dependency>
+
+        <!-- Compose UI -->
+        <dependency>
+            <groupId>androidx.compose.ui</groupId>
+            <artifactId>ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>androidx.compose.ui</groupId>
+            <artifactId>ui-tooling-preview</artifactId>
+        </dependency>
+
+        <!-- Activity Compose -->
+        <dependency>
+            <groupId>androidx.activity</groupId>
+            <artifactId>activity-compose</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+
+        <!-- Lifecycle -->
+        <dependency>
+            <groupId>androidx.lifecycle</groupId>
+            <artifactId>lifecycle-runtime-compose</artifactId>
+            <version>2.8.7</version>
+        </dependency>
+        <dependency>
+            <groupId>androidx.lifecycle</groupId>
+            <artifactId>lifecycle-viewmodel-compose</artifactId>
+            <version>2.8.7</version>
+        </dependency>
+
+        <!-- Navigation -->
+        <dependency>
+            <groupId>androidx.navigation</groupId>
+            <artifactId>navigation-compose</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+
+        <!-- Retrofit + OkHttp -->
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-gson</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>logging-interceptor</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+
+        <!-- Kotlin Serialization -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-serialization-json</artifactId>
+            <version>1.7.3</version>
+        </dependency>
+
+        <!-- Coil 3 (Image Loading) -->
+        <dependency>
+            <groupId>io.coil-3</groupId>
+            <artifactId>coil-compose</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+
+        <!-- ExoPlayer (Media3) -->
+        <dependency>
+            <groupId>androidx.media3</groupId>
+            <artifactId>media3-exoplayer</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>androidx.media3</groupId>
+            <artifactId>media3-ui</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+
+        <!-- DataStore -->
+        <dependency>
+            <groupId>androidx.datastore</groupId>
+            <artifactId>datastore-preferences</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/res</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
