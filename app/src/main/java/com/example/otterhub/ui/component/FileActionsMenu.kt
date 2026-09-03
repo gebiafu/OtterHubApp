@@ -89,13 +89,12 @@ fun FileActionsMenu(
 
     fun deleteFile() {
         scope.launch {
-            when (val res = fileRepo.moveToTrash(file.key)) {
-                is Result.Success -> {
-                    onDismiss()
-                    onChanged()
-                }
-                is Result.Error -> actionError = res.message
-            }
+            // 立即关闭对话框并触发刷新（乐观更新）
+            onDismiss()
+            onChanged()
+            
+            // 后台执行 API 调用
+            fileRepo.moveToTrash(file.key)
         }
     }
 

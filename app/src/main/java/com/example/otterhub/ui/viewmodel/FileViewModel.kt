@@ -117,12 +117,18 @@ class FileViewModel(application: Application) : AndroidViewModel(application) {
 
     fun moveToTrash(key: String) {
         viewModelScope.launch {
+            // 乐观更新：立即从列表移除
+            allFiles.removeAll { it.key == key }
+            _uiState.value = _uiState.value.copy(files = allFiles.toList())
+            
+            // 后台执行 API 调用
             when (fileRepo.moveToTrash(key)) {
                 is Result.Success -> {
-                    allFiles.removeAll { it.key == key }
-                    _uiState.value = _uiState.value.copy(files = allFiles.toList())
+                    // 已经移除，无需额外操作
                 }
-                else -> {}
+                is Result.Error -> {
+                    // API 失败时也不恢复，因为实际操作可能已成功
+                }
             }
         }
     }

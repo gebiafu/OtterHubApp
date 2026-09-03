@@ -96,7 +96,7 @@ class FileRepository {
     suspend fun moveToTrash(key: String): Result<Unit> {
         return try {
             val response = RetrofitClient.api.moveToTrash(key)
-            if (response.isSuccessful) {
+            if (response.isSuccessful && response.body()?.success == true) {
                 Result.Success(Unit)
             } else {
                 val errorMsg = response.body()?.message ?: response.errorBody()?.string() ?: "移入回收站失败"
@@ -110,7 +110,7 @@ class FileRepository {
     suspend fun restoreFromTrash(key: String): Result<Unit> {
         return try {
             val response = RetrofitClient.api.restoreFromTrash(key)
-            if (response.isSuccessful) {
+            if (response.isSuccessful && response.body()?.success == true) {
                 Result.Success(Unit)
             } else {
                 val errorMsg = response.body()?.message ?: response.errorBody()?.string() ?: "恢复失败"

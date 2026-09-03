@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -31,7 +32,6 @@ import com.example.otterhub.ui.component.FileActionsMenu
 import com.example.otterhub.ui.component.FileCard
 import com.example.otterhub.ui.component.FileListItem
 import com.example.otterhub.ui.component.FilterChips
-import com.example.otterhub.ui.component.SortAndViewControls
 import com.example.otterhub.ui.component.SortOrder
 import com.example.otterhub.ui.component.UploadProgress
 import com.example.otterhub.ui.component.ViewMode
@@ -47,6 +47,8 @@ fun HomeScreen(
     onFavoritesClick: () -> Unit,
     onTrashClick: () -> Unit,
     onLogout: () -> Unit,
+    sortOrder: SortOrder,
+    viewMode: ViewMode,
     fileViewModel: FileViewModel = viewModel(),
     uploadViewModel: UploadViewModel = viewModel()
 ) {
@@ -58,8 +60,6 @@ fun HomeScreen(
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var menuFile by remember { mutableStateOf<FileItem?>(null) }
-    var sortOrder by remember { mutableStateOf(SortOrder.UPLOAD_TIME_DESC) }
-    var viewMode by remember { mutableStateOf(ViewMode.GRID) }
 
     val sortedFiles = remember(uiState.files, sortOrder) {
         when (sortOrder) {
@@ -130,6 +130,9 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { fileViewModel.loadFiles(fileType = selectedType, refresh = true) }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "刷新")
+                    }
                     IconButton(onClick = {
                         isSearchActive = !isSearchActive
                         if (!isSearchActive) {
@@ -151,12 +154,6 @@ fun HomeScreen(
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")
                     }
-                    SortAndViewControls(
-                        sortOrder = sortOrder,
-                        viewMode = viewMode,
-                        onSortOrderChange = { sortOrder = it },
-                        onViewModeChange = { viewMode = it }
-                    )
                 },
                 scrollBehavior = scrollBehavior
             )

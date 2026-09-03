@@ -97,10 +97,10 @@ interface OtterHubApi {
     // ==================== Trash ====================
 
     @POST("trash/{key}/move")
-    suspend fun moveToTrash(@Path("key", encoded = true) key: String): Response<ApiResponse<Unit>>
+    suspend fun moveToTrash(@Path("key", encoded = true) key: String): Response<ApiResponse<String>>
 
     @POST("trash/{key}/restore")
-    suspend fun restoreFromTrash(@Path("key", encoded = true) key: String): Response<ApiResponse<Unit>>
+    suspend fun restoreFromTrash(@Path("key", encoded = true) key: String): Response<ApiResponse<String>>
 
     // ==================== Settings ====================
 

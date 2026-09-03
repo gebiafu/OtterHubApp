@@ -13,6 +13,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.otterhub.data.local.PrefsManager
+import com.example.otterhub.ui.component.SortAndViewControls
+import com.example.otterhub.ui.component.SortOrder
+import com.example.otterhub.ui.component.ViewMode
 import com.example.otterhub.ui.viewmodel.SettingsViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -22,6 +25,10 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     onBack: () -> Unit,
     onLogout: () -> Unit,
+    sortOrder: SortOrder,
+    viewMode: ViewMode,
+    onSortOrderChange: (SortOrder) -> Unit,
+    onViewModeChange: (ViewMode) -> Unit,
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -53,6 +60,33 @@ fun SettingsScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
+            // Display settings section
+            Text(
+                text = "显示设置",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    SortAndViewControls(
+                        sortOrder = sortOrder,
+                        viewMode = viewMode,
+                        onSortOrderChange = onSortOrderChange,
+                        onViewModeChange = onViewModeChange
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Server URL section
             Text(
                 text = "网盘地址",

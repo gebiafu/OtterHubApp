@@ -11,6 +11,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.otterhub.data.api.RetrofitClient
 import com.example.otterhub.data.local.PrefsManager
+import com.example.otterhub.ui.component.SortOrder
+import com.example.otterhub.ui.component.ViewMode
 import com.example.otterhub.ui.screen.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -23,6 +25,10 @@ fun OtterHubNavHost() {
     val isSetup by prefs.isSetup.collectAsState(initial = null)
     val baseUrl by prefs.baseUrl.collectAsState(initial = "")
     val authToken by prefs.authToken.collectAsState(initial = "")
+    
+    // 排序和视图模式状态（跨页面共享）
+    var sortOrder by remember { mutableStateOf(SortOrder.UPLOAD_TIME_DESC) }
+    var viewMode by remember { mutableStateOf(ViewMode.GRID) }
 
     LaunchedEffect(isSetup, baseUrl, authToken) {
         if (isSetup == null) return@LaunchedEffect
@@ -85,7 +91,9 @@ fun OtterHubNavHost() {
                         RetrofitClient.setToken(null)
                         prefs.clearAuth()
                     }
-                }
+                },
+                sortOrder = sortOrder,
+                viewMode = viewMode
             )
         }
 
@@ -109,7 +117,11 @@ fun OtterHubNavHost() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                sortOrder = sortOrder,
+                viewMode = viewMode,
+                onSortOrderChange = { sortOrder = it },
+                onViewModeChange = { viewMode = it }
             )
         }
 

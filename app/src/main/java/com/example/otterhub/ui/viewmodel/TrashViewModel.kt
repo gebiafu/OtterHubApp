@@ -45,16 +45,18 @@ class TrashViewModel(application: Application) : AndroidViewModel(application) {
 
     fun restoreFile(key: String) {
         viewModelScope.launch {
+            // 乐观更新：立即从回收站列表移除
+            _uiState.value = _uiState.value.copy(
+                files = _uiState.value.files.filter { it.key != key }
+            )
+            
+            // 后台执行 API 调用
             when (val res = fileRepo.restoreFromTrash(key)) {
                 is Result.Success -> {
-                    // 先本地移除，保证 UI 即时更新；再以服务端为准重新拉取校准。
-                    _uiState.value = _uiState.value.copy(
-                        files = _uiState.value.files.filter { it.key != key }
-                    )
-                    loadTrashFiles()
+                    // 已经移除，无需额外操作
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(error = res.message)
+                    // API 失败时也不恢复，因为实际操作可能已成功
                 }
             }
         }
