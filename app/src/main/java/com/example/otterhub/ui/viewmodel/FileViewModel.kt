@@ -138,9 +138,10 @@ class FileViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = _uiState.value.copy(error = null)
     }
 
-    /** 过滤回收站文件与尚未上传完成的分片文件，避免它们出现在正常列表中。 */
+    /** 过滤回收站文件、尚未上传完成的分片文件和空文件（0字节），避免它们出现在正常列表中。 */
     private fun isVisibleFile(file: FileItem): Boolean {
         if (file.key.startsWith("trash:")) return false
+        if (file.fileSize == 0L) return false
         val chunkInfo = file.metadata.chunkInfo
         if (chunkInfo != null && chunkInfo.uploadedIndices.size != chunkInfo.total) return false
         return true

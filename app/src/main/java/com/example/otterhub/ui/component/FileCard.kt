@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -62,27 +63,35 @@ fun FileCard(
                             )
                         }
                         file.fileType == FileType.VIDEO -> {
-                            if (!file.metadata.thumbUrl.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = file.metadata.thumbUrl,
-                                    contentDescription = file.fileName,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                if (!file.metadata.thumbUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = file.metadata.thumbUrl,
+                                        contentDescription = file.fileName,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    // 没有缩略图，显示图标
+                                    Icon(
+                                        imageVector = Icons.Default.PlayCircle,
+                                        contentDescription = "视频",
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .align(Alignment.Center),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                // 播放图标叠加层
                                 Icon(
                                     imageVector = Icons.Default.PlayCircle,
-                                    contentDescription = "视频",
-                                    modifier = Modifier.size(48.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    contentDescription = "播放",
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .align(Alignment.Center),
+                                    tint = Color.White.copy(alpha = 0.9f)
                                 )
                             }
-                            Icon(
-                                imageVector = Icons.Default.PlayCircle,
-                                contentDescription = "播放",
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
                         }
                         file.fileType == FileType.AUDIO -> {
                             Icon(

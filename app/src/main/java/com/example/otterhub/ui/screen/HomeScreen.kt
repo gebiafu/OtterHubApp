@@ -4,15 +4,16 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -28,8 +29,12 @@ import com.example.otterhub.data.model.FileType
 import com.example.otterhub.ui.component.EmptyState
 import com.example.otterhub.ui.component.FileActionsMenu
 import com.example.otterhub.ui.component.FileCard
+import com.example.otterhub.ui.component.FileListItem
 import com.example.otterhub.ui.component.FilterChips
+import com.example.otterhub.ui.component.SortAndViewControls
+import com.example.otterhub.ui.component.SortOrder
 import com.example.otterhub.ui.component.UploadProgress
+import com.example.otterhub.ui.component.ViewMode
 import com.example.otterhub.ui.viewmodel.FileViewModel
 import com.example.otterhub.ui.viewmodel.UploadViewModel
 import com.example.otterhub.util.FileUtils
@@ -52,8 +57,20 @@ fun HomeScreen(
     var selectedType by remember { mutableStateOf<FileType?>(null) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-    var fabMenuExpanded by remember { mutableStateOf(false) }
     var menuFile by remember { mutableStateOf<FileItem?>(null) }
+    var sortOrder by remember { mutableStateOf(SortOrder.UPLOAD_TIME_DESC) }
+    var viewMode by remember { mutableStateOf(ViewMode.GRID) }
+
+    val sortedFiles = remember(uiState.files, sortOrder) {
+        when (sortOrder) {
+            SortOrder.UPLOAD_TIME_DESC -> uiState.files.sortedByDescending { it.metadata.uploadedAt }
+            SortOrder.UPLOAD_TIME_ASC -> uiState.files.sortedBy { it.metadata.uploadedAt }
+            SortOrder.NAME_ASC -> uiState.files.sortedBy { it.fileName.lowercase() }
+            SortOrder.NAME_DESC -> uiState.files.sortedByDescending { it.fileName.lowercase() }
+            SortOrder.SIZE_DESC -> uiState.files.sortedByDescending { it.fileSize }
+            SortOrder.SIZE_ASC -> uiState.files.sortedBy { it.fileSize }
+        }
+    }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -134,52 +151,21 @@ fun HomeScreen(
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")
                     }
+                    SortAndViewControls(
+                        sortOrder = sortOrder,
+                        viewMode = viewMode,
+                        onSortOrderChange = { sortOrder = it },
+                        onViewModeChange = { viewMode = it }
+                    )
                 },
                 scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
-            Box {
-                FloatingActionButton(onClick = { fabMenuExpanded = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "菜单")
-                }
-                DropdownMenu(
-                    expanded = fabMenuExpanded,
-                    onDismissRequest = { fabMenuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("上传文件") },
-                        leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        onClick = {
-                            fabMenuExpanded = false
-                            filePickerLauncher.launch("*/*")
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("回收站") },
-                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                        onClick = {
-                            fabMenuExpanded = false
-                            onTrashClick()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("系统设置") },
-                        leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                        onClick = {
-                            fabMenuExpanded = false
-                            onSettingsClick()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("退出登录") },
-                        leadingIcon = { Icon(Icons.Default.Logout, contentDescription = null) },
-                        onClick = {
-                            fabMenuExpanded = false
-                            onLogout()
-                        }
-                    )
-                }
+            FloatingActionButton(
+                onClick = { filePickerLauncher.launch("*/*") }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "上传文件")
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -199,25 +185,39 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // File grid
+            // File grid or list
             when {
                 uiState.files.isEmpty() && !uiState.isLoading -> {
                     EmptyState(
                         message = if (selectedType != null) "该类型暂无文件" else "暂无文件，点击右下角 + 上传"
                     )
                 }
-                else -> {
+                viewMode == ViewMode.GRID -> {
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(120.dp),
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(uiState.files) { file ->
+                        items(sortedFiles) { file ->
                             FileCard(
                                 file = file,
                                 onClick = { onFileClick(file.key) },
                                 onLongClick = { menuFile = file },
+                                onMoreClick = { menuFile = file }
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(sortedFiles) { file ->
+                            FileListItem(
+                                file = file,
+                                onClick = { onFileClick(file.key) },
                                 onMoreClick = { menuFile = file }
                             )
                         }

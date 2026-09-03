@@ -22,6 +22,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.otterhub.data.model.FileType
+import com.example.otterhub.ui.component.FileDetailDialog
+import com.example.otterhub.ui.component.VideoPlayer
 import com.example.otterhub.ui.viewmodel.PreviewViewModel
 import com.example.otterhub.util.FileUtils
 
@@ -35,7 +37,7 @@ fun PreviewScreen(
 ) {
     val uiState by previewViewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var showMenu by remember { mutableStateOf(false) }
+    var showDetailDialog by remember { mutableStateOf(false) }
 
     // 直接从 key 推导文件类型，图片预览不依赖文件元数据是否加载成功。
     val fileType = remember(fileKey) { FileUtils.getFileTypeFromKey(fileKey) }
@@ -64,7 +66,7 @@ fun PreviewScreen(
                             )
                         }
                     }
-                    IconButton(onClick = { showMenu = true }) {
+                    IconButton(onClick = { showDetailDialog = true }) {
                         Icon(Icons.Default.Info, contentDescription = "详情")
                     }
                 },
@@ -111,24 +113,10 @@ fun PreviewScreen(
                     )
                 }
                 FileType.VIDEO -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = displayName,
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "视频播放功能开发中...",
-                                color = Color.White.copy(alpha = 0.7f),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
+                    VideoPlayer(
+                        url = FileUtils.buildFileRawUrl(fileKey),
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 FileType.AUDIO -> {
                     Box(
@@ -198,4 +186,10 @@ fun PreviewScreen(
             }
         }
     }
+
+    // 文件详情对话框
+    FileDetailDialog(
+        file = uiState.file,
+        onDismiss = { showDetailDialog = false }
+    )
 }
