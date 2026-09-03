@@ -82,30 +82,42 @@ class FileRepository {
     suspend fun deleteFile(key: String): Result<Unit> {
         return try {
             val response = RetrofitClient.api.deleteFile(key)
-            if (response.isSuccessful) Result.Success(Unit)
-            else Result.Error(response.body()?.message ?: "删除失败")
+            if (response.isSuccessful) {
+                Result.Success(Unit)
+            } else {
+                val errorMsg = response.body()?.message ?: response.errorBody()?.string() ?: "删除失败"
+                Result.Error("删除失败: $errorMsg (HTTP ${response.code()})")
+            }
         } catch (e: Exception) {
-            Result.Error("删除失败: ${e.localizedMessage}")
+            Result.Error("网络错误: ${e.message}")
         }
     }
 
     suspend fun moveToTrash(key: String): Result<Unit> {
         return try {
             val response = RetrofitClient.api.moveToTrash(key)
-            if (response.isSuccessful) Result.Success(Unit)
-            else Result.Error(response.body()?.message ?: "移入回收站失败")
+            if (response.isSuccessful) {
+                Result.Success(Unit)
+            } else {
+                val errorMsg = response.body()?.message ?: response.errorBody()?.string() ?: "移入回收站失败"
+                Result.Error("移入回收站失败: $errorMsg (HTTP ${response.code()})")
+            }
         } catch (e: Exception) {
-            Result.Error("网络错误: ${e.localizedMessage}")
+            Result.Error("网络错误: ${e.message}")
         }
     }
 
     suspend fun restoreFromTrash(key: String): Result<Unit> {
         return try {
             val response = RetrofitClient.api.restoreFromTrash(key)
-            if (response.isSuccessful) Result.Success(Unit)
-            else Result.Error(response.body()?.message ?: "恢复失败")
+            if (response.isSuccessful) {
+                Result.Success(Unit)
+            } else {
+                val errorMsg = response.body()?.message ?: response.errorBody()?.string() ?: "恢复失败"
+                Result.Error("恢复失败: $errorMsg (HTTP ${response.code()})")
+            }
         } catch (e: Exception) {
-            Result.Error("网络错误: ${e.localizedMessage}")
+            Result.Error("网络错误: ${e.message}")
         }
     }
 

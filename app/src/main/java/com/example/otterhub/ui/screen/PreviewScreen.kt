@@ -188,8 +188,10 @@ fun PreviewScreen(
     }
 
     // 文件详情对话框
-    FileDetailDialog(
-        file = uiState.file,
-        onDismiss = { showDetailDialog = false }
-    )
+    if (showDetailDialog) {
+        FileDetailDialog(
+            file = uiState.file,
+            onDismiss = { showDetailDialog = false }
+        )
+    }
 }

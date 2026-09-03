@@ -19,16 +19,21 @@ class FileViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<FileUiState> = _uiState
 
     private var allFiles = mutableListOf<FileItem>()
-
-    init {
-        loadFiles()
-    }
+    private var currentFileType: FileType? = null
 
     fun loadFiles(fileType: FileType? = null, refresh: Boolean = false) {
         viewModelScope.launch {
-            if (refresh) {
+            // 如果类型改变，强制刷新
+            if (fileType != currentFileType) {
+                currentFileType = fileType
                 allFiles.clear()
-                _uiState.value = _uiState.value.copy(cursor = null, hasMore = true)
+                _uiState.value = _uiState.value.copy(cursor = null, hasMore = true, files = emptyList())
+            }
+            
+            if (refresh) {
+                currentFileType = fileType
+                allFiles.clear()
+                _uiState.value = _uiState.value.copy(cursor = null, hasMore = true, files = emptyList())
             }
 
             val currentCursor = _uiState.value.cursor
