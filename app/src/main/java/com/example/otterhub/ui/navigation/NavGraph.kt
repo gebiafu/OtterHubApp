@@ -74,13 +74,13 @@ fun OtterHubNavHost() {
         }
 
         composable(Screen.Home.route) {
+            val scope = rememberCoroutineScope()
             HomeScreen(
                 onFileClick = { key -> navController.navigate(Screen.Preview.createRoute(key)) },
                 onSettingsClick = { navController.navigate(Screen.Settings.route) },
                 onFavoritesClick = { navController.navigate(Screen.Favorites.route) },
                 onTrashClick = { navController.navigate(Screen.Trash.route) },
                 onLogout = {
-                    val scope = rememberCoroutineScope()
                     scope.launch {
                         RetrofitClient.setToken(null)
                         prefs.clearAuth()
