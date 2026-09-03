@@ -29,7 +29,7 @@ class PreviewViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            when (val result = fileRepo.getFilesList()) {
+            when (val result = fileRepo.getFileList()) {
                 is Result.Success -> {
                     val file = result.data.first.find { it.key == key }
                     if (file != null) {

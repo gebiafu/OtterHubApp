@@ -174,13 +174,13 @@ fun PreviewScreen(
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
-                                        text = "文件类型: ${uiState.file!!.fileType.name}",
+                                        text = "文件类型: ${uiState.file!!.fileType?.name ?: "未知"}",
                                         color = Color.White.copy(alpha = 0.7f),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "大小: ${FileUtils.formatFileSize(uiState.file!!.size)}",
+                                        text = "大小: ${FileUtils.formatFileSize(uiState.file!!.fileSize)}",
                                         color = Color.White.copy(alpha = 0.7f),
                                         style = MaterialTheme.typography.bodyMedium
                                     )

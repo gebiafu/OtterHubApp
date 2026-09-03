@@ -120,13 +120,8 @@ fun OtterHubNavHost() {
             )
         }
 
-        composable(
-            route = Screen.Share.route,
-            arguments = listOf(navArgument("token") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val token = backStackEntry.arguments?.getString("token") ?: ""
+        composable(Screen.Share.route) {
             ShareScreen(
-                token = token,
                 onBack = { navController.popBackStack() }
             )
         }

@@ -46,7 +46,7 @@ fun FileCard(
                 when {
                     file.fileType == FileType.IMAGE -> {
                         AsyncImage(
-                            model = file.thumbUrl,
+                            model = file.metadata.thumbUrl,
                             contentDescription = file.fileName,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -54,7 +54,7 @@ fun FileCard(
                     }
                     file.fileType == FileType.VIDEO -> {
                         AsyncImage(
-                            model = file.thumbUrl,
+                            model = file.metadata.thumbUrl,
                             contentDescription = file.fileName,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -96,7 +96,7 @@ fun FileCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = FileUtils.formatFileSize(file.size),
+                    text = FileUtils.formatFileSize(file.fileSize),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

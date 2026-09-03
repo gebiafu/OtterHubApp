@@ -5,7 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Server
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.otterhub.data.local.PrefsManager
 import com.example.otterhub.ui.viewmodel.SettingsViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,7 +64,7 @@ fun SettingsScreen(
                 onValueChange = { newBaseUrl = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("服务器地址") },
-                leadingIcon = { Icon(Icons.Default.Server, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(16.dp))

@@ -74,7 +74,8 @@ class UploadViewModel(application: Application) : AndroidViewModel(application) 
     private suspend fun uploadLargeFile(file: File, fileName: String, fileSize: Long) {
         _uiState.value = _uiState.value.copy(isChunked = true)
 
-        val fileType = FileUtils.getFileTypeForUpload(fileName)
+        val mimeType = FileUtils.getMimeType(fileName)
+        val fileType = FileUtils.getFileTypeForUpload(mimeType).apiValue
         val chunkSize = 2 * 1024 * 1024 // 2MB chunks
         val totalChunks = Math.ceil(fileSize.toDouble() / chunkSize).toInt()
 
