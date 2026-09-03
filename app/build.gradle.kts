@@ -102,8 +102,8 @@ dependencies {
     // Kotlin Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
-    // Image Loading (Coil 3)
-    implementation("io.coil-3:coil-compose:3.0.4")
+    // Image Loading (Coil 2, latest stable on Maven Central)
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Media Playback (ExoPlayer)
     implementation("androidx.media3:media3-exoplayer:1.5.1")
