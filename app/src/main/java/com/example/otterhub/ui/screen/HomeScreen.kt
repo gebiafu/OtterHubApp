@@ -3,30 +3,36 @@ package com.example.otterhub.ui.screen
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.otterhub.data.model.FileItem
 import com.example.otterhub.data.model.FileType
 import com.example.otterhub.ui.component.EmptyState
+import com.example.otterhub.ui.component.FileActionsMenu
 import com.example.otterhub.ui.component.FileCard
 import com.example.otterhub.ui.component.FilterChips
+import com.example.otterhub.ui.component.UploadProgress
 import com.example.otterhub.ui.viewmodel.FileViewModel
+import com.example.otterhub.ui.viewmodel.UploadViewModel
+import com.example.otterhub.util.FileUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,13 +41,19 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onFavoritesClick: () -> Unit,
     onTrashClick: () -> Unit,
-    onUploadClick: (Uri) -> Unit,
-    fileViewModel: FileViewModel = viewModel()
+    onLogout: () -> Unit,
+    fileViewModel: FileViewModel = viewModel(),
+    uploadViewModel: UploadViewModel = viewModel()
 ) {
     val uiState by fileViewModel.uiState.collectAsState()
+    val uploadState by uploadViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
     var selectedType by remember { mutableStateOf<FileType?>(null) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    var fabMenuExpanded by remember { mutableStateOf(false) }
+    var menuFile by remember { mutableStateOf<FileItem?>(null) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -49,7 +61,10 @@ fun HomeScreen(
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { onUploadClick(it) }
+        uri?.let {
+            val name = FileUtils.resolveFileName(context, it)
+            uploadViewModel.uploadFile(it, name)
+        }
     }
 
     LaunchedEffect(uiState.error) {
@@ -61,6 +76,20 @@ fun HomeScreen(
 
     LaunchedEffect(selectedType) {
         fileViewModel.loadFiles(fileType = selectedType, refresh = true)
+    }
+
+    LaunchedEffect(uploadState.success, uploadState.error) {
+        when {
+            uploadState.success -> {
+                snackbarHostState.showSnackbar("上传成功")
+                uploadViewModel.resetState()
+                fileViewModel.loadFiles(fileType = selectedType, refresh = true)
+            }
+            uploadState.error != null -> {
+                snackbarHostState.showSnackbar(uploadState.error!!)
+                uploadViewModel.clearError()
+            }
+        }
     }
 
     Scaffold(
@@ -110,12 +139,52 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { filePickerLauncher.launch("*/*") }) {
-                Icon(Icons.Default.Add, contentDescription = "上传文件")
+            Box {
+                FloatingActionButton(onClick = { fabMenuExpanded = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "菜单")
+                }
+                DropdownMenu(
+                    expanded = fabMenuExpanded,
+                    onDismissRequest = { fabMenuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("上传文件") },
+                        leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        onClick = {
+                            fabMenuExpanded = false
+                            filePickerLauncher.launch("*/*")
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("回收站") },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                        onClick = {
+                            fabMenuExpanded = false
+                            onTrashClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("系统设置") },
+                        leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                        onClick = {
+                            fabMenuExpanded = false
+                            onSettingsClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("退出登录") },
+                        leadingIcon = { Icon(Icons.Default.Logout, contentDescription = null) },
+                        onClick = {
+                            fabMenuExpanded = false
+                            onLogout()
+                        }
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -134,7 +203,7 @@ fun HomeScreen(
             when {
                 uiState.files.isEmpty() && !uiState.isLoading -> {
                     EmptyState(
-                        message = if (selectedType != null) "该类型暂无文件" else "暂无文件，点击 + 上传"
+                        message = if (selectedType != null) "该类型暂无文件" else "暂无文件，点击右下角 + 上传"
                     )
                 }
                 else -> {
@@ -147,7 +216,9 @@ fun HomeScreen(
                         items(uiState.files) { file ->
                             FileCard(
                                 file = file,
-                                onClick = { onFileClick(file.key) }
+                                onClick = { onFileClick(file.key) },
+                                onLongClick = { menuFile = file },
+                                onMoreClick = { menuFile = file }
                             )
                         }
                     }
@@ -173,5 +244,28 @@ fun HomeScreen(
                 }
             }
         }
+
+            if (uploadState.isUploading) {
+                UploadProgress(
+                    fileName = uploadState.currentFileName,
+                    progress = uploadState.progress,
+                    isChunked = uploadState.isChunked,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
     }
+
+    // 文件上下文菜单
+    FileActionsMenu(
+        file = menuFile,
+        onDismiss = { menuFile = null },
+        onView = { key ->
+            menuFile = null
+            onFileClick(key)
+        },
+        onChanged = {
+            fileViewModel.loadFiles(fileType = selectedType, refresh = true)
+        }
+    )
 }

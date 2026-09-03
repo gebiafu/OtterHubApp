@@ -24,9 +24,11 @@ fun TrashScreen(
 ) {
     val uiState by trashViewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
             trashViewModel.clearError()
         }
     }
@@ -41,7 +43,8 @@ fun TrashScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         if (uiState.files.isEmpty() && !uiState.isLoading) {
             EmptyState(

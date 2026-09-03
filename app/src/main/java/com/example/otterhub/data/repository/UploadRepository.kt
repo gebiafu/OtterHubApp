@@ -21,7 +21,7 @@ class UploadRepository {
 
             val response = RetrofitClient.api.uploadFile(filePart, nsfwPart)
             if (response.isSuccessful && response.body()?.success == true) {
-                Result.Success(response.body()?.data?.key ?: "")
+                Result.Success(response.body()?.data ?: "")
             } else {
                 Result.Error(response.body()?.message ?: "上传失败")
             }

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.otterhub.data.model.FileItem
+import com.example.otterhub.data.model.FileType
 import com.example.otterhub.data.repository.FileRepository
 import com.example.otterhub.data.repository.Result
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,13 +25,11 @@ class TrashViewModel(application: Application) : AndroidViewModel(application) {
     fun loadTrashFiles() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            when (val result = fileRepo.getFileList(limit = 100)) {
+            // 直接按 trash 前缀拉取，避免正常文件/大量文件挤占前 100 条导致回收站显示不全。
+            when (val result = fileRepo.getFileList(fileType = FileType.TRASH, limit = 1000)) {
                 is Result.Success -> {
-                    val trashFiles = result.data.first.filter {
-                        it.key.startsWith("trash:")
-                    }
                     _uiState.value = _uiState.value.copy(
-                        files = trashFiles,
+                        files = result.data.first,
                         isLoading = false
                     )
                 }
@@ -46,32 +45,33 @@ class TrashViewModel(application: Application) : AndroidViewModel(application) {
 
     fun restoreFile(key: String) {
         viewModelScope.launch {
-            when (fileRepo.restoreFromTrash(key)) {
+            when (val res = fileRepo.restoreFromTrash(key)) {
                 is Result.Success -> {
+                    // 先本地移除，保证 UI 即时更新；再以服务端为准重新拉取校准。
                     _uiState.value = _uiState.value.copy(
                         files = _uiState.value.files.filter { it.key != key }
                     )
+                    loadTrashFiles()
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(error = "恢复失败")
+                    _uiState.value = _uiState.value.copy(error = res.message)
                 }
-                else -> {}
             }
         }
     }
 
     fun deletePermanently(key: String) {
         viewModelScope.launch {
-            when (fileRepo.deleteFile(key)) {
+            when (val res = fileRepo.deleteFile(key)) {
                 is Result.Success -> {
                     _uiState.value = _uiState.value.copy(
                         files = _uiState.value.files.filter { it.key != key }
                     )
+                    loadTrashFiles()
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(error = "删除失败")
+                    _uiState.value = _uiState.value.copy(error = res.message)
                 }
-                else -> {}
             }
         }
     }

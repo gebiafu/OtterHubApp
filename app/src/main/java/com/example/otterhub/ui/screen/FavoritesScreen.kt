@@ -12,7 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.otterhub.data.model.FileItem
 import com.example.otterhub.ui.component.EmptyState
+import com.example.otterhub.ui.component.FileActionsMenu
 import com.example.otterhub.ui.component.FileCard
 import com.example.otterhub.ui.viewmodel.FileViewModel
 
@@ -24,6 +26,7 @@ fun FavoritesScreen(
     fileViewModel: FileViewModel = viewModel()
 ) {
     val uiState by fileViewModel.uiState.collectAsState()
+    var menuFile by remember { mutableStateOf<FileItem?>(null) }
 
     LaunchedEffect(Unit) {
         fileViewModel.loadFavorites()
@@ -57,7 +60,9 @@ fun FavoritesScreen(
                 items(uiState.files) { file ->
                     FileCard(
                         file = file,
-                        onClick = { onFileClick(file.key) }
+                        onClick = { onFileClick(file.key) },
+                        onLongClick = { menuFile = file },
+                        onMoreClick = { menuFile = file }
                     )
                 }
             }
@@ -67,4 +72,17 @@ fun FavoritesScreen(
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
     }
+
+    // 文件上下文菜单
+    FileActionsMenu(
+        file = menuFile,
+        onDismiss = { menuFile = null },
+        onView = { key ->
+            menuFile = null
+            onFileClick(key)
+        },
+        onChanged = {
+            fileViewModel.loadFavorites()
+        }
+    )
 }

@@ -55,7 +55,7 @@ interface OtterHubApi {
         @Part file: MultipartBody.Part,
         @Part("nsfw") nsfw: RequestBody,
         @Part("tags") tags: RequestBody? = null
-    ): Response<ApiResponse<UploadResult>>
+    ): Response<ApiResponse<String>>
 
     @POST("upload/by-url")
     suspend fun uploadByUrl(@Body body: Map<String, Any?>): Response<ApiResponse<UploadResult>>

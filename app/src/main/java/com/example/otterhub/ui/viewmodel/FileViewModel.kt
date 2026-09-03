@@ -39,7 +39,7 @@ class FileViewModel(application: Application) : AndroidViewModel(application) {
             when (val result = fileRepo.getFileList(fileType = fileType, cursor = currentCursor)) {
                 is Result.Success -> {
                     val (files, nextCursor) = result.data
-                    allFiles.addAll(files)
+                    allFiles.addAll(files.filter(::isVisibleFile))
                     _uiState.value = _uiState.value.copy(
                         files = allFiles.toList(),
                         isLoading = false,
@@ -62,7 +62,7 @@ class FileViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.value = _uiState.value.copy(isLoading = true)
             when (val result = fileRepo.getFileList(limit = 100)) {
                 is Result.Success -> {
-                    val favorites = result.data.first.filter { it.metadata.liked }
+                    val favorites = result.data.first.filter { it.metadata.liked && isVisibleFile(it) }
                     _uiState.value = _uiState.value.copy(
                         files = favorites,
                         isLoading = false,
@@ -136,6 +136,14 @@ class FileViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    /** 过滤回收站文件与尚未上传完成的分片文件，避免它们出现在正常列表中。 */
+    private fun isVisibleFile(file: FileItem): Boolean {
+        if (file.key.startsWith("trash:")) return false
+        val chunkInfo = file.metadata.chunkInfo
+        if (chunkInfo != null && chunkInfo.uploadedIndices.size != chunkInfo.total) return false
+        return true
     }
 }
 

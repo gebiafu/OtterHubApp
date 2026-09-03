@@ -74,7 +74,12 @@ object RetrofitClient {
         authToken = token
     }
 
+    fun getAuthToken(): String? = authToken
+
     fun getBaseUrl(): String = baseUrl
+
+    /** 供 Coil / DownloadManager 等复用同一个 OkHttpClient，从而携带 auth Cookie。 */
+    fun getOkHttpClient(): OkHttpClient = okHttpClient
 
     val api: OtterHubApi
         get() = retrofit?.create(OtterHubApi::class.java)

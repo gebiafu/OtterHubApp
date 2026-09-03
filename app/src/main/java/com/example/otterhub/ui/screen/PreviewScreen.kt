@@ -1,17 +1,13 @@
 package com.example.otterhub.ui.screen
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,6 +37,10 @@ fun PreviewScreen(
     val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
 
+    // 直接从 key 推导文件类型，图片预览不依赖文件元数据是否加载成功。
+    val fileType = remember(fileKey) { FileUtils.getFileTypeFromKey(fileKey) }
+    val displayName = uiState.file?.fileName ?: fileKey
+
     LaunchedEffect(fileKey) {
         previewViewModel.loadFileInfo(fileKey)
     }
@@ -48,7 +48,7 @@ fun PreviewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.file?.fileName ?: "预览") },
+                title = { Text(displayName) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
@@ -80,122 +80,121 @@ fun PreviewScreen(
                 .padding(paddingValues)
                 .background(Color.Black)
         ) {
-            when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Color.White
+            when (fileType) {
+                FileType.IMAGE -> {
+                    var scale by remember { mutableStateOf(1f) }
+                    var offsetX by remember { mutableStateOf(0f) }
+                    var offsetY by remember { mutableStateOf(0f) }
+
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(FileUtils.buildFileRawUrl(fileKey))
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = displayName,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTransformGestures { _, pan, zoom, _ ->
+                                    scale = (scale * zoom).coerceIn(0.5f, 5f)
+                                    offsetX += pan.x
+                                    offsetY += pan.y
+                                }
+                            }
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offsetX,
+                                translationY = offsetY
+                            ),
+                        contentScale = ContentScale.Fit
                     )
                 }
-                uiState.file != null -> {
-                    when (uiState.file!!.fileType) {
-                        FileType.IMAGE -> {
-                            var scale by remember { mutableStateOf(1f) }
-                            var offsetX by remember { mutableStateOf(0f) }
-                            var offsetY by remember { mutableStateOf(0f) }
-
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(previewViewModel.getRawUrl(fileKey))
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = uiState.file!!.fileName,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .pointerInput(Unit) {
-                                        detectTransformGestures { _, pan, zoom, _ ->
-                                            scale = (scale * zoom).coerceIn(0.5f, 5f)
-                                            offsetX += pan.x
-                                            offsetY += pan.y
-                                        }
-                                    }
-                                    .graphicsLayer(
-                                        scaleX = scale,
-                                        scaleY = scale,
-                                        translationX = offsetX,
-                                        translationY = offsetY
-                                    ),
-                                contentScale = ContentScale.Fit
+                FileType.VIDEO -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = displayName,
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "视频播放功能开发中...",
+                                color = Color.White.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
-                        FileType.VIDEO -> {
-                            // Video player placeholder - would use Media3 ExoPlayer
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = uiState.file!!.fileName,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "视频播放功能开发中...",
-                                        color = Color.White.copy(alpha = 0.7f),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
+                    }
+                }
+                FileType.AUDIO -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = displayName,
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "音频播放功能开发中...",
+                                color = Color.White.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
-                        FileType.AUDIO -> {
-                            // Audio player placeholder
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = uiState.file!!.fileName,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "音频播放功能开发中...",
-                                        color = Color.White.copy(alpha = 0.7f),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                        }
-                        else -> {
-                            // Document preview placeholder
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = uiState.file!!.fileName,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "文件类型: ${uiState.file!!.fileType?.name ?: "未知"}",
-                                        color = Color.White.copy(alpha = 0.7f),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "大小: ${FileUtils.formatFileSize(uiState.file!!.fileSize)}",
-                                        color = Color.White.copy(alpha = 0.7f),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
+                    }
+                }
+                else -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = displayName,
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "文件类型: ${fileType?.name ?: "未知"}",
+                                color = Color.White.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            if (uiState.file != null) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "大小: ${FileUtils.formatFileSize(uiState.file!!.fileSize)}",
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
                         }
                     }
                 }
-                uiState.error != null -> {
-                    Text(
-                        text = uiState.error ?: "",
-                        color = Color.White,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+            }
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White
+                )
+            }
+
+            uiState.error?.let {
+                Text(
+                    text = it,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                )
             }
         }
     }

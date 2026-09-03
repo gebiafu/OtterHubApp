@@ -13,6 +13,7 @@ import com.example.otterhub.data.api.RetrofitClient
 import com.example.otterhub.data.local.PrefsManager
 import com.example.otterhub.ui.screen.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @Composable
 fun OtterHubNavHost() {
@@ -78,7 +79,13 @@ fun OtterHubNavHost() {
                 onSettingsClick = { navController.navigate(Screen.Settings.route) },
                 onFavoritesClick = { navController.navigate(Screen.Favorites.route) },
                 onTrashClick = { navController.navigate(Screen.Trash.route) },
-                onUploadClick = { uri -> /* TODO: Handle upload */ }
+                onLogout = {
+                    val scope = rememberCoroutineScope()
+                    scope.launch {
+                        RetrofitClient.setToken(null)
+                        prefs.clearAuth()
+                    }
+                }
             )
         }
 

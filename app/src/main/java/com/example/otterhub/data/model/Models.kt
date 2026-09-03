@@ -6,7 +6,8 @@ enum class FileType(val apiValue: String, val displayName: String) {
     @SerializedName("img") IMAGE("img", "图片"),
     @SerializedName("audio") AUDIO("audio", "音频"),
     @SerializedName("video") VIDEO("video", "视频"),
-    @SerializedName("doc") DOCUMENT("doc", "文档")
+    @SerializedName("doc") DOCUMENT("doc", "文档"),
+    @SerializedName("trash") TRASH("trash", "回收站")
 }
 
 enum class FileTag(val value: String) {

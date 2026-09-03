@@ -8,6 +8,7 @@ import com.example.otterhub.data.model.FileItem
 import com.example.otterhub.data.model.FileType
 import com.example.otterhub.data.repository.FileRepository
 import com.example.otterhub.data.repository.Result
+import com.example.otterhub.util.FileUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -29,7 +30,9 @@ class PreviewViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            when (val result = fileRepo.getFileList()) {
+            // 仅按该文件的类型前缀查询，limit 拉满，避免文件不在首页时找不到。
+            val fileType = FileUtils.getFileTypeFromKey(key)
+            when (val result = fileRepo.getFileList(fileType = fileType, limit = 1000)) {
                 is Result.Success -> {
                     val file = result.data.first.find { it.key == key }
                     if (file != null) {

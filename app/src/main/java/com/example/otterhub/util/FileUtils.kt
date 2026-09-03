@@ -1,11 +1,40 @@
 package com.example.otterhub.util
 
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
+import com.example.otterhub.data.api.RetrofitClient
 import com.example.otterhub.data.model.FileType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 object FileUtils {
+
+    fun buildFileRawUrl(key: String): String =
+        "${RetrofitClient.getBaseUrl()}/file/${java.net.URLEncoder.encode(key, "UTF-8")}"
+
+    fun buildFileThumbUrl(key: String): String =
+        "${RetrofitClient.getBaseUrl()}/file/${java.net.URLEncoder.encode(key, "UTF-8")}/thumb"
+
+    fun buildFileDownloadUrl(key: String): String =
+        "${RetrofitClient.getBaseUrl()}/file/${java.net.URLEncoder.encode(key, "UTF-8")}/download"
+
+    /** 从 content:// Uri 解析真实文件名，失败时回退到 Uri 最后一段。 */
+    fun resolveFileName(context: Context, uri: Uri): String {
+        var name = uri.lastPathSegment ?: "upload"
+        try {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (idx >= 0 && cursor.moveToFirst()) {
+                    name = cursor.getString(idx)
+                }
+            }
+        } catch (_: Exception) {
+        }
+        if (name.isBlank()) name = "upload"
+        return name
+    }
 
     fun formatFileSize(bytes: Long): String {
         if (bytes <= 0) return "0 B"
@@ -32,6 +61,11 @@ object FileUtils {
     }
 
     fun formatUploadDate(dateStr: String): String {
+        if (dateStr.isBlank()) return ""
+        // 后端 uploadedAt 为毫秒时间戳（Gson 会转为数字字符串）
+        dateStr.toLongOrNull()?.let { ts ->
+            return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date(ts))
+        }
         return try {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
             val outputFormat = SimpleDateFormat("MM-dd HH:mm", Locale.CHINA)
