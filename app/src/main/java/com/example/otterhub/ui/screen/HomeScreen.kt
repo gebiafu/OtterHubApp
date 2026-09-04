@@ -56,7 +56,7 @@ fun HomeScreen(
     val uploadState by uploadViewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    var selectedType by remember { mutableStateOf<FileType?>(null) }
+    var selectedType by remember { mutableStateOf<FileType?>(FileType.IMAGE) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var menuFile by remember { mutableStateOf<FileItem?>(null) }
@@ -193,7 +193,7 @@ fun HomeScreen(
             when {
                 uiState.files.isEmpty() && !uiState.isLoading -> {
                     EmptyState(
-                        message = if (selectedType != null) "该类型暂无文件" else "暂无文件，点击右下角 + 上传"
+                        message = "该类型暂无文件，点击右下角 + 上传"
                     )
                 }
                 viewMode == ViewMode.GRID -> {

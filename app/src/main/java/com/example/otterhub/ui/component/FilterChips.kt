@@ -28,12 +28,6 @@ fun FilterChips(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         FilterChip(
-            selected = selectedType == null,
-            onClick = { onTypeSelected(null) },
-            label = { Text("全部") }
-        )
-        
-        FilterChip(
             selected = selectedType == FileType.IMAGE,
             onClick = { onTypeSelected(FileType.IMAGE) },
             label = { Text("图片") },

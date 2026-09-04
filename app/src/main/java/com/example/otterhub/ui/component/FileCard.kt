@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.otterhub.data.api.RetrofitClient
 import com.example.otterhub.data.model.FileItem
 import com.example.otterhub.data.model.FileType
 import com.example.otterhub.util.FileUtils
@@ -69,16 +70,33 @@ fun FileCard(
                         }
                         file.fileType == FileType.VIDEO -> {
                             Box(modifier = Modifier.fillMaxSize()) {
-                                // 使用缩略图 API
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(FileUtils.buildFileThumbUrl(file.key))
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = file.fileName,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
+                                // 使用 metadata.thumbUrl，如果为空则使用占位符
+                                val thumbUrl = file.metadata.thumbUrl?.let {
+                                    "${RetrofitClient.getBaseUrl()}$it"
+                                }
+                                
+                                if (thumbUrl != null) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(thumbUrl)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = file.fileName,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    // 没有缩略图，显示占位符
+                                    Icon(
+                                        imageVector = Icons.Default.PlayCircle,
+                                        contentDescription = "视频",
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .align(Alignment.Center),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                
                                 // 播放图标叠加层
                                 Icon(
                                     imageVector = Icons.Default.PlayCircle,

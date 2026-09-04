@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.otterhub.data.api.RetrofitClient
 import com.example.otterhub.data.model.FileItem
 import com.example.otterhub.data.model.FileType
 import com.example.otterhub.util.FileUtils
@@ -63,15 +64,28 @@ fun FileListItem(
                         )
                     }
                     file.fileType == FileType.VIDEO -> {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(FileUtils.buildFileThumbUrl(file.key))
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = file.fileName,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
+                        val thumbUrl = file.metadata.thumbUrl?.let {
+                            "${RetrofitClient.getBaseUrl()}$it"
+                        }
+                        
+                        if (thumbUrl != null) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(thumbUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = file.fileName,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.PlayCircle,
+                                contentDescription = "视频",
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                     file.fileType == FileType.AUDIO -> {
                         Icon(
