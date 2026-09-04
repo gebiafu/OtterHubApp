@@ -64,24 +64,13 @@ fun FileCard(
                         }
                         file.fileType == FileType.VIDEO -> {
                             Box(modifier = Modifier.fillMaxSize()) {
-                                if (!file.metadata.thumbUrl.isNullOrBlank()) {
-                                    AsyncImage(
-                                        model = file.metadata.thumbUrl,
-                                        contentDescription = file.fileName,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                } else {
-                                    // 没有缩略图，显示图标
-                                    Icon(
-                                        imageVector = Icons.Default.PlayCircle,
-                                        contentDescription = "视频",
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .align(Alignment.Center),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
+                                // 使用缩略图 API
+                                AsyncImage(
+                                    model = FileUtils.buildFileThumbUrl(file.key),
+                                    contentDescription = file.fileName,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
                                 // 播放图标叠加层
                                 Icon(
                                     imageVector = Icons.Default.PlayCircle,

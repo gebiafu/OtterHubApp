@@ -1,7 +1,6 @@
 package com.example.otterhub.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -13,16 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.otterhub.data.model.FileType
 import com.example.otterhub.ui.component.FileDetailDialog
+import com.example.otterhub.ui.component.ImageViewer
 import com.example.otterhub.ui.component.VideoPlayer
 import com.example.otterhub.ui.viewmodel.PreviewViewModel
 import com.example.otterhub.util.FileUtils
@@ -36,7 +30,6 @@ fun PreviewScreen(
     previewViewModel: PreviewViewModel = viewModel()
 ) {
     val uiState by previewViewModel.uiState.collectAsState()
-    val context = LocalContext.current
     var showDetailDialog by remember { mutableStateOf(false) }
 
     // 直接从 key 推导文件类型，图片预览不依赖文件元数据是否加载成功。
@@ -84,32 +77,11 @@ fun PreviewScreen(
         ) {
             when (fileType) {
                 FileType.IMAGE -> {
-                    var scale by remember { mutableStateOf(1f) }
-                    var offsetX by remember { mutableStateOf(0f) }
-                    var offsetY by remember { mutableStateOf(0f) }
-
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(FileUtils.buildFileRawUrl(fileKey))
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = displayName,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(Unit) {
-                                detectTransformGestures { _, pan, zoom, _ ->
-                                    scale = (scale * zoom).coerceIn(0.5f, 5f)
-                                    offsetX += pan.x
-                                    offsetY += pan.y
-                                }
-                            }
-                            .graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale,
-                                translationX = offsetX,
-                                translationY = offsetY
-                            ),
-                        contentScale = ContentScale.Fit
+                    // 使用新的 ImageViewer 支持滑动切换
+                    val currentIndex = uiState.allImages.indexOfFirst { it.key == fileKey }
+                    ImageViewer(
+                        images = uiState.allImages,
+                        initialIndex = if (currentIndex >= 0) currentIndex else 0
                     )
                 }
                 FileType.VIDEO -> {

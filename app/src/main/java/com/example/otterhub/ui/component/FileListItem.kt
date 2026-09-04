@@ -58,21 +58,12 @@ fun FileListItem(
                         )
                     }
                     file.fileType == FileType.VIDEO -> {
-                        if (!file.metadata.thumbUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = file.metadata.thumbUrl,
-                                contentDescription = file.fileName,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.PlayCircle,
-                                contentDescription = "视频",
-                                modifier = Modifier.size(32.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        AsyncImage(
+                            model = FileUtils.buildFileThumbUrl(file.key),
+                            contentDescription = file.fileName,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                     file.fileType == FileType.AUDIO -> {
                         Icon(

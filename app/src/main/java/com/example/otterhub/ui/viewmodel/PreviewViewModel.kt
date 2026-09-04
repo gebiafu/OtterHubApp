@@ -34,10 +34,18 @@ class PreviewViewModel(application: Application) : AndroidViewModel(application)
             val fileType = FileUtils.getFileTypeFromKey(key)
             when (val result = fileRepo.getFileList(fileType = fileType, limit = 1000)) {
                 is Result.Success -> {
-                    val file = result.data.first.find { it.key == key }
+                    val allFiles = result.data.first
+                    val file = allFiles.find { it.key == key }
+                    
+                    // 如果是图片类型，保存所有图片列表用于滑动切换
+                    val imageList = if (fileType == FileType.IMAGE) {
+                        allFiles.filter { it.fileType == FileType.IMAGE }
+                    } else emptyList()
+                    
                     if (file != null) {
                         _uiState.value = _uiState.value.copy(
                             file = file,
+                            allImages = imageList,
                             isLoading = false
                         )
                     } else {
@@ -114,6 +122,7 @@ class PreviewViewModel(application: Application) : AndroidViewModel(application)
 
 data class PreviewUiState(
     val file: FileItem? = null,
+    val allImages: List<FileItem> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )
