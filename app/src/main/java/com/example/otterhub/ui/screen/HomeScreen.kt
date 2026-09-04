@@ -60,6 +60,9 @@ fun HomeScreen(
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var menuFile by remember { mutableStateOf<FileItem?>(null) }
+    
+    // 首次加载标记
+    var hasInitialLoaded by remember { mutableStateOf(false) }
 
     val sortedFiles = remember(uiState.files, sortOrder) {
         when (sortOrder) {
@@ -91,8 +94,12 @@ fun HomeScreen(
         }
     }
 
+    // 首次加载和类型切换时刷新
     LaunchedEffect(selectedType) {
-        fileViewModel.loadFiles(fileType = selectedType, refresh = true)
+        if (!hasInitialLoaded || selectedType != null) {
+            fileViewModel.loadFiles(fileType = selectedType, refresh = false)
+            hasInitialLoaded = true
+        }
     }
 
     LaunchedEffect(uploadState.success, uploadState.error) {
@@ -262,6 +269,7 @@ fun HomeScreen(
             onFileClick(key)
         },
         onChanged = {
+            // 手动操作后刷新列表
             fileViewModel.loadFiles(fileType = selectedType, refresh = true)
         }
     )

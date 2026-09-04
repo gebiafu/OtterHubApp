@@ -113,16 +113,23 @@ private fun ZoomableImage(
                 modifier = Modifier
                     .fillMaxSize()
                     .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            scale = (scale * zoom).coerceIn(0.5f, 5f)
+                        detectTransformGestures(
+                            panZoomLock = true
+                        ) { _, pan, zoom, _ ->
+                            val newScale = (scale * zoom).coerceIn(0.5f, 5f)
                             
-                            // 只有放大时才允许平移
-                            if (scale > 1f) {
-                                offsetX += pan.x
-                                offsetY += pan.y
-                            } else {
-                                offsetX = 0f
-                                offsetY = 0f
+                            // 只有在进行缩放操作或已经缩放时才处理手势
+                            if (zoom != 1f || scale > 1.01f) {
+                                scale = newScale
+                                
+                                // 只有放大时才允许平移
+                                if (scale > 1f) {
+                                    offsetX += pan.x
+                                    offsetY += pan.y
+                                } else {
+                                    offsetX = 0f
+                                    offsetY = 0f
+                                }
                             }
                         }
                     }
@@ -136,7 +143,7 @@ private fun ZoomableImage(
             )
         }
 
-        // 重置缩放的提示
+        // 重置缩放
         LaunchedEffect(scale) {
             if (scale < 1f) {
                 scale = 1f
