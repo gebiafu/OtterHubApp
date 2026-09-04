@@ -78,11 +78,16 @@ fun PreviewScreen(
             when (fileType) {
                 FileType.IMAGE -> {
                     // 使用新的 ImageViewer 支持滑动切换
-                    val currentIndex = uiState.allImages.indexOfFirst { it.key == fileKey }
-                    ImageViewer(
-                        images = uiState.allImages,
-                        initialIndex = if (currentIndex >= 0) currentIndex else 0
-                    )
+                    // 等待图片列表加载完成
+                    if (uiState.allImages.isNotEmpty()) {
+                        val currentIndex = uiState.allImages.indexOfFirst { it.key == fileKey }
+                        key(uiState.allImages.size, fileKey) {
+                            ImageViewer(
+                                images = uiState.allImages,
+                                initialIndex = if (currentIndex >= 0) currentIndex else 0
+                            )
+                        }
+                    }
                 }
                 FileType.VIDEO -> {
                     VideoPlayer(

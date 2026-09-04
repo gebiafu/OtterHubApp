@@ -34,50 +34,53 @@ fun ImageViewer(
     // 确保索引有效
     val safeInitialIndex = initialIndex.coerceIn(0, (images.size - 1).coerceAtLeast(0))
     
-    val pagerState = rememberPagerState(
-        initialPage = safeInitialIndex,
-        pageCount = { images.size }
-    )
+    // 使用 key 参数确保当 initialIndex 改变时重新创建 Pager
+    key(images.size, safeInitialIndex) {
+        val pagerState = rememberPagerState(
+            initialPage = safeInitialIndex,
+            pageCount = { images.size }
+        )
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        if (images.isEmpty()) {
-            Text(
-                text = "没有图片",
-                color = Color.White,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                key = { images[it].key }
-            ) { page ->
-                val image = images[page]
-                ZoomableImage(
-                    url = FileUtils.buildFileRawUrl(image.key),
-                    contentDescription = image.fileName
-                )
-            }
-
-            // 页码指示器
-            if (images.size > 1) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            if (images.isEmpty()) {
                 Text(
-                    text = "${pagerState.currentPage + 1} / ${images.size}",
+                    text = "没有图片",
                     color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp)
-                        .background(
-                            Color.Black.copy(alpha = 0.6f),
-                            shape = MaterialTheme.shapes.small
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                    modifier = Modifier.align(Alignment.Center)
                 )
+            } else {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                    key = { images[it].key }
+                ) { page ->
+                    val image = images[page]
+                    ZoomableImage(
+                        url = FileUtils.buildFileRawUrl(image.key),
+                        contentDescription = image.fileName
+                    )
+                }
+
+                // 页码指示器
+                if (images.size > 1) {
+                    Text(
+                        text = "${pagerState.currentPage + 1} / ${images.size}",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp)
+                            .background(
+                                Color.Black.copy(alpha = 0.6f),
+                                shape = MaterialTheme.shapes.small
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
             }
         }
     }
@@ -90,52 +93,56 @@ private fun ZoomableImage(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var scale by remember { mutableFloatStateOf(1f) }
-    var offsetX by remember { mutableFloatStateOf(0f) }
-    var offsetY by remember { mutableFloatStateOf(0f) }
+    
+    // 为每个图片 URL 创建独立的状态
+    key(url) {
+        var scale by remember { mutableFloatStateOf(1f) }
+        var offsetX by remember { mutableFloatStateOf(0f) }
+        var offsetY by remember { mutableFloatStateOf(0f) }
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(url)
-                .crossfade(true)
-                .build(),
-            contentDescription = contentDescription,
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, pan, zoom, _ ->
-                        scale = (scale * zoom).coerceIn(0.5f, 5f)
-                        
-                        // 只有放大时才允许平移
-                        if (scale > 1f) {
-                            offsetX += pan.x
-                            offsetY += pan.y
-                        } else {
-                            offsetX = 0f
-                            offsetY = 0f
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(url)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = contentDescription,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            scale = (scale * zoom).coerceIn(0.5f, 5f)
+                            
+                            // 只有放大时才允许平移
+                            if (scale > 1f) {
+                                offsetX += pan.x
+                                offsetY += pan.y
+                            } else {
+                                offsetX = 0f
+                                offsetY = 0f
+                            }
                         }
                     }
-                }
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offsetX,
-                    translationY = offsetY
-                ),
-            contentScale = ContentScale.Fit
-        )
-    }
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offsetX,
+                        translationY = offsetY
+                    ),
+                contentScale = ContentScale.Fit
+            )
+        }
 
-    // 重置缩放的提示
-    LaunchedEffect(scale) {
-        if (scale < 1f) {
-            scale = 1f
-            offsetX = 0f
-            offsetY = 0f
+        // 重置缩放的提示
+        LaunchedEffect(scale) {
+            if (scale < 1f) {
+                scale = 1f
+                offsetX = 0f
+                offsetY = 0f
+            }
         }
     }
 }
