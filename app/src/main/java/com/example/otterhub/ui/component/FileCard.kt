@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.otterhub.data.model.FileItem
 import com.example.otterhub.data.model.FileType
 import com.example.otterhub.util.FileUtils
@@ -56,7 +58,10 @@ fun FileCard(
                     when {
                         file.fileType == FileType.IMAGE -> {
                             AsyncImage(
-                                model = FileUtils.buildFileRawUrl(file.key),
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(FileUtils.buildFileRawUrl(file.key))
+                                    .crossfade(true)
+                                    .build(),
                                 contentDescription = file.fileName,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
@@ -66,7 +71,10 @@ fun FileCard(
                             Box(modifier = Modifier.fillMaxSize()) {
                                 // 使用缩略图 API
                                 AsyncImage(
-                                    model = FileUtils.buildFileThumbUrl(file.key),
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(FileUtils.buildFileThumbUrl(file.key))
+                                        .crossfade(true)
+                                        .build(),
                                     contentDescription = file.fileName,
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop

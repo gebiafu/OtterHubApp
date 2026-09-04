@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -31,8 +30,12 @@ fun ImageViewer(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    
+    // 确保索引有效
+    val safeInitialIndex = initialIndex.coerceIn(0, (images.size - 1).coerceAtLeast(0))
+    
     val pagerState = rememberPagerState(
-        initialPage = initialIndex.coerceIn(0, images.size - 1),
+        initialPage = safeInitialIndex,
         pageCount = { images.size }
     )
 
@@ -50,7 +53,8 @@ fun ImageViewer(
         } else {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                key = { images[it].key }
             ) { page ->
                 val image = images[page]
                 ZoomableImage(
@@ -86,9 +90,9 @@ private fun ZoomableImage(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var scale by remember { mutableStateOf(1f) }
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
 
     Box(
         modifier = modifier.fillMaxSize(),
